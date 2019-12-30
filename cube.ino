@@ -143,6 +143,12 @@ void xrotate(float q) {
   }
 }
 
+void viewplane(int amt) {
+  view_plane+=amt;
+  if (view_plane>=96) 
+    view_plane = 0;
+}
+
 void draw_cube() {
   TV.draw_line(cube2d[0][0],cube2d[0][1],cube2d[1][0],cube2d[1][1],WHITE);
   TV.draw_line(cube2d[0][0],cube2d[0][1],cube2d[2][0],cube2d[2][1],WHITE);
