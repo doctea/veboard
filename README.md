@@ -2,7 +2,9 @@
 
 This is an Arduino sketch for the Nootropic Design Video Experimenter shield that listens for commands over serial and changes output based on the commands received.
 
-Intended to be used with a forthcoming r_e_c_u_r feature in my r_e_c_u_r branch at https://github.com/doctea/r_e_c_u_r/tree/feature_midi_feedback_plugin
+This combines several of the example sketches that come with the Video Experimenter shield and enables the different layers to be switched on/off remotely.
+
+Intended to be used with the r_e_c_u_r SerialSendPlugin feature in my experimental r_e_c_u_r branch at https://github.com/doctea/r_e_c_u_r/tree/feature_midi_feedback_plugin
 
 #### Links
 
