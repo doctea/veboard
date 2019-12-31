@@ -1,13 +1,16 @@
+//#define HardwareSerial_h
+
 #include <TVout.h>
 #include <pollserial.h>
 #include <fontALL.h>
+//#include <SoftwareSerial.h>
 
 #define W 128
 #define H 96
 
 TVout TV;
 pollserial pserial;
-
+//SoftwareSerial pserial(0,1);
 
 int frame_count = 0;
 int clear_after = 0;
@@ -63,37 +66,45 @@ void setup() {
   initOverlay();
   initInputProcessing();
   TV.println("\VurFX// veBoard");
+  setup_serial();
   TV.println("-- Version 0.1337 --");
-  TV.set_hbi_hook(pserial.begin(9600));
+}
+
+void setup_serial() {
+  TV.set_hbi_hook(pserial.begin(38400));
+  //pserial.begin(38400);
 }
 
 int target = 10;
 int position = 0;
 
-#define ENABLE_CLEAR ((int)'V')
+#define ENABLE_CLEAR  ((int)'V')
 #define DISABLE_CLEAR ((int)'v')
-#define ENABLE_DEBUG ((int)'D')
+#define ENABLE_DEBUG  ((int)'D')
 #define DISABLE_DEBUG ((int)'d')
-#define ENABLE_CUBE  ((int)'C')
-#define DISABLE_CUBE ((int)'c')
-#define ENABLE_AXES  ((int)'A')
-#define DISABLE_AXES ((int)'a')
+#define ENABLE_CUBE   ((int)'C')
+#define DISABLE_CUBE  ((int)'c')
+#define ENABLE_AXES   ((int)'A')
+#define DISABLE_AXES  ((int)'a')
 #define ENABLE_GRAPH  ((int)'G')
 #define DISABLE_GRAPH ((int)'g')
-#define ENABLE_GRAPHMESSAGE ((int)'M')
-#define DISABLE_GRAPHMESSAGE ((int)'m')
-#define ENABLE_CAPTURE ((int)'R')
-#define DISABLE_CAPTURE ((int)'r')
-#define ENABLE_INVERT ((int)'I')
-#define DISABLE_INVERT ((int)'i')
-#define ENABLE_VIEWPLANE ((int)'E')
-#define DISABLE_VIEWPLANE ((int)'e')
+#define ENABLE_GRAPHMESSAGE   ((int)'M')
+#define DISABLE_GRAPHMESSAGE  ((int)'m')
+#define ENABLE_CAPTURE        ((int)'R')
+#define DISABLE_CAPTURE       ((int)'r')
+#define ENABLE_INVERT         ((int)'I')
+#define DISABLE_INVERT        ((int)'i')
+#define ENABLE_VIEWPLANE      ((int)'E')
+#define DISABLE_VIEWPLANE     ((int)'e')
 
-#define ROTATE_X ((int)'X')
-#define ROTATE_Y ((int)'Y')
-#define ROTATE_Z ((int)'Z')
+#define ENABLE_ROTATE_X ((int)'X')
+#define ENABLE_ROTATE_Y ((int)'Y')
+#define ENABLE_ROTATE_Z ((int)'Z')
+#define DISABLE_ROTATE_X ((int)'x')
+#define DISABLE_ROTATE_Y ((int)'y')
+#define DISABLE_ROTATE_Z ((int)'z')
 
-#define ENABLE_OVERLAY ((int)'O')
+#define ENABLE_OVERLAY  ((int)'O')
 #define DISABLE_OVERLAY ((int)'o')
 
 bool enable_clear = false;//true;
@@ -105,10 +116,26 @@ bool enable_graphmessage = false;
 bool enable_capture = false;
 bool enable_invert = false;
 bool enable_viewplane = true;
+bool enable_overlay = true;
 
 bool rotate_x = false;
 bool rotate_y = false;
 bool rotate_z = false;
+
+void report_status() {
+  pserial.write(enable_cube ? ENABLE_CUBE : DISABLE_CUBE);
+  pserial.write(enable_clear ? ENABLE_CLEAR : DISABLE_CLEAR);
+  pserial.write(enable_axes ? ENABLE_AXES : DISABLE_AXES);
+  pserial.write(enable_graph ? ENABLE_GRAPH : DISABLE_GRAPH);
+  //pserial.write(enable_graphmessage ? ENABLE_GRAPHMESS
+  pserial.write(enable_invert ? ENABLE_INVERT : DISABLE_INVERT);
+  pserial.write(enable_viewplane ? ENABLE_VIEWPLANE : DISABLE_VIEWPLANE);
+  pserial.write(enable_capture ? ENABLE_CAPTURE : DISABLE_CAPTURE);
+  pserial.write(rotate_x ? ENABLE_ROTATE_X : DISABLE_ROTATE_X);
+  pserial.write(rotate_y ? ENABLE_ROTATE_Y : DISABLE_ROTATE_Y);
+  pserial.write(rotate_z ? ENABLE_ROTATE_Z : DISABLE_ROTATE_Z);
+  pserial.write(clear_after + ((int)'0'));
+}
 
 void loop() {
   if (pserial.available()) {
@@ -117,9 +144,12 @@ void loop() {
     if (target==ENABLE_CUBE)        enable_cube   = true;
     else if (target==DISABLE_CUBE)  enable_cube   = false;
     else if (target==ENABLE_DEBUG)  enable_debug  = true;
-    else if (target==ROTATE_X)      rotate_x      = !rotate_x;
-    else if (target==ROTATE_Y)      rotate_y      = !rotate_y;
-    else if (target==ROTATE_Z)      rotate_z      = !rotate_z;
+    else if (target==ENABLE_ROTATE_X)      rotate_x      = true;
+    else if (target==DISABLE_ROTATE_X)     rotate_x      = false;
+    else if (target==ENABLE_ROTATE_Y)      rotate_y      = true;
+    else if (target==DISABLE_ROTATE_Y)     rotate_y      = false;
+    else if (target==ENABLE_ROTATE_Z)      rotate_z      = true;
+    else if (target==DISABLE_ROTATE_Z)     rotate_z      = false;
     else if (target==DISABLE_DEBUG) enable_debug  = false;
     else if (target==ENABLE_CLEAR)  enable_clear  = true;
     else if (target==DISABLE_CLEAR) enable_clear  = false;
@@ -129,8 +159,8 @@ void loop() {
     else if (target==DISABLE_GRAPH) enable_graph  = false;
     else if (target==ENABLE_GRAPHMESSAGE) enable_graphmessage = true;
     else if (target==DISABLE_GRAPHMESSAGE) enable_graphmessage = false;
-    else if (target==ENABLE_OVERLAY) startOverlay();
-    else if (target==DISABLE_OVERLAY) stopOverlay();
+    else if (target==ENABLE_OVERLAY)  if (!enable_overlay) { enable_overlay = true;   startOverlay(); }
+    else if (target==DISABLE_OVERLAY) if (enable_overlay)   { enable_overlay = false; stopOverlay(); }
     else if (target==ENABLE_CAPTURE) enable_capture = true;
     else if (target==DISABLE_CAPTURE) enable_capture = false;
     else if (target==ENABLE_INVERT) enable_invert = true;
@@ -138,6 +168,7 @@ void loop() {
     else if (target==ENABLE_VIEWPLANE) enable_viewplane = true;
     else if (target==DISABLE_VIEWPLANE) enable_viewplane = false;
     else if (target>=((int)'0') && target <= ((int)'9')) clear_after = target-((int)'0');
+    else if (target==((int)'S')) report_status();
     //TV.clear_screen();
     //TV.print(0,0,clear_after*10);
   }
@@ -183,9 +214,13 @@ void loop() {
     if (rotate_z) zrotate(PI/60);
     if (enable_viewplane) viewplane(1);
     printcube();
+    // funky double-cube effect
+    viewplane(50);
+    printcube();
+    viewplane(-50);
   }
 
-  if (enable_invert) {
+  if (enable_invert/*&& !enable_capture*/) {
     TV.fill(INVERT);
   }
 
