@@ -13,7 +13,7 @@ pollserial pserial;
 //SoftwareSerial pserial(0,1);
 
 int frame_count = 0;
-int clear_after = 0;
+int clear_after = 10;
 
 bool capture_enabled = false;
 
@@ -141,16 +141,17 @@ void loop() {
   if (pserial.available()) {
     target = pserial.read();
     //TV.print((char)pserial.read());
-    if (target==ENABLE_CUBE)        enable_cube   = true;
+    int p = target;
+    if      (target==ENABLE_CUBE)   enable_cube   = true;
     else if (target==DISABLE_CUBE)  enable_cube   = false;
     else if (target==ENABLE_DEBUG)  enable_debug  = true;
+    else if (target==DISABLE_DEBUG) enable_debug  = false;
     else if (target==ENABLE_ROTATE_X)      rotate_x      = true;
     else if (target==DISABLE_ROTATE_X)     rotate_x      = false;
     else if (target==ENABLE_ROTATE_Y)      rotate_y      = true;
     else if (target==DISABLE_ROTATE_Y)     rotate_y      = false;
     else if (target==ENABLE_ROTATE_Z)      rotate_z      = true;
     else if (target==DISABLE_ROTATE_Z)     rotate_z      = false;
-    else if (target==DISABLE_DEBUG) enable_debug  = false;
     else if (target==ENABLE_CLEAR)  enable_clear  = true;
     else if (target==DISABLE_CLEAR) enable_clear  = false;
     else if (target==ENABLE_AXES)   enable_axes   = true;
@@ -159,16 +160,19 @@ void loop() {
     else if (target==DISABLE_GRAPH) enable_graph  = false;
     else if (target==ENABLE_GRAPHMESSAGE) enable_graphmessage = true;
     else if (target==DISABLE_GRAPHMESSAGE) enable_graphmessage = false;
-    else if (target==ENABLE_OVERLAY)  if (!enable_overlay) { enable_overlay = true;   startOverlay(); }
-    else if (target==DISABLE_OVERLAY) if (enable_overlay)   { enable_overlay = false; stopOverlay(); }
+    else if (target==ENABLE_OVERLAY)  { if (!enable_overlay) { enable_overlay = true;   startOverlay(); } }
+    else if (target==DISABLE_OVERLAY) { if (enable_overlay)   { enable_overlay = false; stopOverlay(); } }
     else if (target==ENABLE_CAPTURE) enable_capture = true;
     else if (target==DISABLE_CAPTURE) enable_capture = false;
     else if (target==ENABLE_INVERT) enable_invert = true;
     else if (target==DISABLE_INVERT) enable_invert = false;
     else if (target==ENABLE_VIEWPLANE) enable_viewplane = true;
     else if (target==DISABLE_VIEWPLANE) enable_viewplane = false;
-    else if (target>=((int)'0') && target <= ((int)'9')) clear_after = target-((int)'0');
-    else if (target==((int)'S')) report_status();
+    else if (target>=((int)'0') && target<=((int)'9')) {
+      clear_after = pow(2,(1+(target-((int)'0'))));
+      //TV.println(clear_after);
+    } else if (target==((int)'S')) report_status();
+    else target = p;
     //TV.clear_screen();
     //TV.print(0,0,clear_after*10);
   }
@@ -201,12 +205,13 @@ void loop() {
   
   if (enable_debug) {
     TV.print(0,90,"pos:");
-    TV.print(position);
+    TV.print(target);
     TV.print("   :");  
+    TV.print(clear_after);
     //delay(50);
   }
-  position++;
-  if (position>target) position = 0;
+  //position++;
+  //if (position>target) position = 0;
 
   if (enable_cube) {
     if (rotate_x) xrotate(PI/60);
