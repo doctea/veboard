@@ -4,7 +4,7 @@ This is an Arduino sketch for the Nootropic Design Video Experimenter shield tha
 
 This combines several of the example sketches that come with the Video Experimenter shield and enables the different layers to be switched on/off remotely.
 
-Intended to be used with the r_e_c_u_r SerialSendPlugin feature in my experimental r_e_c_u_r branch at https://github.com/doctea/r_e_c_u_r/tree/feature_midi_feedback_plugin
+Intended to be used with the r_e_c_u_r SerialSendPlugin feature in my experimental r_e_c_u_r plugins branch at https://github.com/doctea/r_e_c_u_r
 
 #### Links
 
